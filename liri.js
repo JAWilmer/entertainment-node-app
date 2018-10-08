@@ -1,16 +1,14 @@
 //NMPs: 
 require("dotenv").config();
-// let fs = require('fs');// do i need this?
-// let spotify = require('node-spotify-api');// Songs
+// let fs = require('fs');// use this to read and write
+const Spotify = require('node-spotify-api');// Songs
 const request = require('request');// Bands in Town (concerts) & OMDB (movies)
-const moment = require('moment');// figureing out how to use this
+const moment = require('moment');// Time formatter
 const chalk = require('chalk'); // Colorizer
 
-// import keys.js and store as variable
-// const keys = require('./keys');
-
-// access keys example
-// const spotify = new Spotify(keys.spotify);
+// Access spotify keys
+const keys = require('./keys');
+const spotify = new Spotify(keys.spotify);
 
 const action = process.argv[2];
 console.log(action)
@@ -23,51 +21,47 @@ console.log(action)
 // } else (action === "do-what-it-says") 
 //     doIt()
 
-switch (action)
-{
+switch (action) {
     case "concert-this":
-    concert ();
-    break;
+        concert();
+        break;
+    case "spotify-this-song":
+        music();
+        break;
     case "movie-this":
-    movie();
-    break;
+        movie();
+        break;
+    // case "do-what-it-says":
+    // doIt()
+    // break;
 }
 
 
-
-// if (action === "concert-this") 
-// {
-//     concert()
-// }
-
-// else (action === "movie-this")
-// movie()
-
-
-
-
-
-// BANDS IN TOWN// node liri.js concert-this '<artist/band name here>'
+//// BANDS IN TOWN //// 
+// node liri.js concert-this '<artist/band name here>'
 function concert() {
     let artist = process.argv[3];
     if (artist === undefined) {
         console.log(chalk.red("I'm sorry, I don't recognize that band. Please try another band."))
     }
 
-    const queryUrl = "https://rest.bandsintown.com/artists/" + artist + "/events?app_id=codingbootcamp";
+    const queryConcertUrl = "https://rest.bandsintown.com/artists/" + artist + "/events?app_id=codingbootcamp";
 
-    request(queryUrl, (err, response, body) => {
+    request(queryConcertUrl, (err, response, body) => {
         if (err)
             return err;
         if (response.statusCode === 200) {
+            console.log(chalk.green(`Great news! ${artist} is on tour!`))
+            console.log(
+
+            )
             let jsonConcert = JSON.parse(body);
             for (let i = 0; i < jsonConcert.length; i++) {
-                console.log(chalk.green(`Great news! ${artist} will be performing at the ${jsonConcert[i].venue.name} in ${jsonConcert[i].venue.city}, ${jsonConcert[i].venue.region} on ${moment(jsonConcert[i].datetime).format("MMM Do, YYYY")}.`))
-                console.log(chalk.yellow(`Find out more: ${jsonConcert[i].url}`))
+                console.log(chalk.yellow(`${moment(jsonConcert[i].datetime).format("MMM Do, YYYY")} at ${jsonConcert[i].venue.name} in ${jsonConcert[i].venue.city}, ${jsonConcert[i].venue.region}`))
                 console.log(
-
                 )
             }
+
             if (jsonConcert.length === 0) {
                 console.log(chalk.red("It doesn't look like that band is on tour. Please try another band."))
             }
@@ -75,6 +69,39 @@ function concert() {
     })
 }
 
+//// SPOTIFY //// 
+// node liri.js spotify-this-song '<song name here>'
+function music() {
+    let song = process.argv[3];
+    if (song === undefined) {
+        console.log(chalk.red("Have you heard my favorite song?  It's called 'The Sign' by Ace of Base."))
+    }
+
+    spotify.search({ type: 'track', query: song, limit: 1 }, function (err, data) {
+        if (err) {
+            return console.log('Error occurred: ' + err);
+        }else {
+            console.log(chalk.blue(`Check out your track: ${data.tracks.items[0].name} was recorded by ${data.tracks.items[0].artists[0].name} on ${data.tracks.items[0].album.name}. Preivew at Spotify ${data.tracks.items[0].preview_url}`))
+	    }
+	});
+};
+
+
+//   RETURN RESULTS              
+//                 in ${year}
+//                 console.log(
+
+//                 )
+
+// FOR LOOP IF NEEDED
+//             
+//             if (jsonConcert.length === 0) {
+//                 console.log(chalk.red("It doesn't look like that band is on tour. Please try another band."))
+//             }
+//         }
+//     })
+// }
+//////////////////////////////end spotify
 
 
 
@@ -89,8 +116,8 @@ function concert() {
 
 
 
-
-//OMDB// node liri.js movie-this '<movie name here>'
+//// OMDB //// 
+// node liri.js movie-this '<movie name here>'
 function movie() {
     let movieName = process.argv[3];
     if (movieName === undefined) {
@@ -98,9 +125,9 @@ function movie() {
         movieName = "Mr. Nobody"
     }
 
-    const queryUrl = "http://www.omdbapi.com/?t=" + movieName + "&y=&plot=short&apikey=trilogy";
+    const queryMovieUrl = "http://www.omdbapi.com/?t=" + movieName + "&y=&plot=short&apikey=trilogy";
 
-    request(queryUrl, (err, response, body) => {
+    request(queryMovieUrl, (err, response, body) => {
         if (err)
             return err;
         if (response.statusCode === 200) {
