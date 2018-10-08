@@ -16,5 +16,12 @@
   "bugs": {
     "url": "https://github.com/JAWilmer/entertainment-node-app/issues"
   },
-  "homepage": "https://github.com/JAWilmer/entertainment-node-app#readme"
+  "homepage": "https://github.com/JAWilmer/entertainment-node-app#readme",
+  "dependencies": {
+    "chalk": "^2.4.1",
+    "dotenv": "^6.0.0",
+    "moment": "^2.22.2",
+    "node-spotify-api": "^1.0.7",
+    "request": "^2.88.0"
+  }
 }
