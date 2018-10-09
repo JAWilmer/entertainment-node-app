@@ -44,9 +44,7 @@ function concert() {
     if (artist === undefined) {
         console.log(chalk.red("I'm sorry, I don't recognize that band. Please try another band."))
     }
-
     const queryConcertUrl = "https://rest.bandsintown.com/artists/" + artist + "/events?app_id=codingbootcamp";
-
     request(queryConcertUrl, (err, response, body) => {
         if (err)
             return err;
@@ -61,7 +59,6 @@ function concert() {
                 console.log(
                 )
             }
-
             if (jsonConcert.length === 0) {
                 console.log(chalk.red("It doesn't look like that band is on tour. Please try another band."))
             }
@@ -76,45 +73,26 @@ function music() {
     if (song === undefined) {
         console.log(chalk.red("Have you heard my favorite song?  It's called 'The Sign' by Ace of Base."))
     }
-
-    spotify.search({ type: 'track', query: song, limit: 1 }, function (err, data) {
+    spotify.search({ type: 'track', query: song, limit: 5 }, function (err, data) {
         if (err) {
             return console.log('Error occurred: ' + err);
-        }else {
-            console.log(chalk.blue(`Check out your track: ${data.tracks.items[0].name} was recorded by ${data.tracks.items[0].artists[0].name} on ${data.tracks.items[0].album.name}. Preivew at Spotify ${data.tracks.items[0].preview_url}`))
-	    }
-	});
+        }
+        if (data.tracks.items.length === 0) {
+            console.log(chalk.red("I'm sorry but I can't find that track. Please try another track."))
+        }
+        else {
+            console.log(chalk.blue(`I found a few listings for "${song}."  Is one of these what you were looking for?`))
+            console.log(
+
+            )
+            for (let i = 0; i < data.tracks.items.length; i++) {
+                console.log(chalk.green(`${data.tracks.items[i].name} was recorded by ${data.tracks.items[i].artists[0].name} on ${data.tracks.items[i].album.name}. Preivew at Spotify ${data.tracks.items[i].preview_url}`))
+            console.log(
+            )
+            }
+        }
+    });
 };
-
-
-//   RETURN RESULTS              
-//                 in ${year}
-//                 console.log(
-
-//                 )
-
-// FOR LOOP IF NEEDED
-//             
-//             if (jsonConcert.length === 0) {
-//                 console.log(chalk.red("It doesn't look like that band is on tour. Please try another band."))
-//             }
-//         }
-//     })
-// }
-//////////////////////////////end spotify
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 //// OMDB //// 
 // node liri.js movie-this '<movie name here>'
