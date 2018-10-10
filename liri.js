@@ -1,6 +1,6 @@
 //NMPs: 
 require("dotenv").config();
-// let fs = require('fs');// use this to read and write
+let fs = require('fs');// Read and write
 const Spotify = require('node-spotify-api');// Songs
 const request = require('request');// Bands in Town (concerts) & OMDB (movies)
 const moment = require('moment');// Time formatter
@@ -11,15 +11,7 @@ const keys = require('./keys');
 const spotify = new Spotify(keys.spotify);
 
 const action = process.argv[2];
-console.log(action)
-// if (action === "concert-this") {
-//     concert() 
-// } else if (action === "spotify-this-song") {
-//     song()
-// } else if (action === "movie-this") {
-//     movie()
-// } else (action === "do-what-it-says") 
-//     doIt()
+console.log(chalk.red('You asked me to:', action))// take out after testing
 
 switch (action) {
     case "concert-this":
@@ -31,36 +23,30 @@ switch (action) {
     case "movie-this":
         movie();
         break;
-    // case "do-what-it-says":
-    // doIt()
-    // break;
+    case "do-what-it-says":
+        doIt()
+        break;
 }
-
 
 //// BANDS IN TOWN //// 
 // node liri.js concert-this '<artist/band name here>'
-function concert() {
-    let artist = process.argv[3];
+function concert(artistName) {
+    let artist = artistName || process.argv[3];
     if (artist === undefined) {
-        console.log(chalk.red("I'm sorry, I don't recognize that band. Please try another band."))
+        console.log(chalk.red(`\nI'm sorry, I don't recognize that band. Maybe you would like to see my favorite artist, Sir Paul McCartney.\n`));
+artist = "Paul McCartney";
     }
     const queryConcertUrl = "https://rest.bandsintown.com/artists/" + artist + "/events?app_id=codingbootcamp";
     request(queryConcertUrl, (err, response, body) => {
-        if (err)
-            return err;
-        if (response.statusCode === 200) {
-            console.log(chalk.green(`Great news! ${artist} is on tour!`))
-            console.log(
-
-            )
+        if (err) {
+            return console.log('\nError occurred: ' + err);
+        } else if (response.statusCode === 200) {
             let jsonConcert = JSON.parse(body);
+            console.log(chalk.green(`\nI hope you can catch one of these tour stops for ${artist}:\n`))
             for (let i = 0; i < jsonConcert.length; i++) {
-                console.log(chalk.yellow(`${moment(jsonConcert[i].datetime).format("MMM Do, YYYY")} at ${jsonConcert[i].venue.name} in ${jsonConcert[i].venue.city}, ${jsonConcert[i].venue.region}`))
-                console.log(
-                )
-            }
-            if (jsonConcert.length === 0) {
-                console.log(chalk.red("It doesn't look like that band is on tour. Please try another band."))
+                console.log(chalk.cyan(`•  ${moment(jsonConcert[i].datetime).format("MMM Do, YYYY")} at ${jsonConcert[i].venue.name} in ${jsonConcert[i].venue.city}, ${jsonConcert[i].venue.region}\n`))
+            } if (jsonConcert.length === 0) {
+                console.log(chalk.red("I'm sorry, it doesn't look like that band is on tour. Please try another band."))
             }
         }
     })
@@ -68,27 +54,21 @@ function concert() {
 
 //// SPOTIFY //// 
 // node liri.js spotify-this-song '<song name here>'
-function music() {
-    let song = process.argv[3];
+function music(songTitle) {
+    let song = songTitle || process.argv[3];
     if (song === undefined) {
-        console.log(chalk.red("Have you heard my favorite song?  It's called 'The Sign' by Ace of Base."))
+        console.log(chalk.red(`\nHave you heard my favorite song?  It's called "Pink Shoe Laces."\n`))
+        song = "Pink Shoe Laces"
     }
-    spotify.search({ type: 'track', query: song, limit: 5 }, function (err, data) {
+    spotify.search({ type: 'track', query: song, limit: 7 }, function (err, data) {
         if (err) {
-            return console.log('Error occurred: ' + err);
-        }
-        if (data.tracks.items.length === 0) {
-            console.log(chalk.red("I'm sorry but I can't find that track. Please try another track."))
-        }
-        else {
-            console.log(chalk.blue(`I found a few listings for "${song}."  Is one of these what you were looking for?`))
-            console.log(
-
-            )
+            return console.log('\nError occurred: ' + err);
+        } else if (data.tracks.items.length === 0) {
+            console.log(chalk.red(`\nI'm sorry but I can't find that track. Please try another track.`))
+        } else {
+            console.log(chalk.green(`\nI found a few listings for "${song}."\n`))
             for (let i = 0; i < data.tracks.items.length; i++) {
-                console.log(chalk.green(`${data.tracks.items[i].name} was recorded by ${data.tracks.items[i].artists[0].name} on ${data.tracks.items[i].album.name}. Preivew at Spotify ${data.tracks.items[i].preview_url}`))
-            console.log(
-            )
+                console.log(chalk.cyan(`•  ${data.tracks.items[i].name} was recorded by ${data.tracks.items[i].artists[0].name} on ${data.tracks.items[i].album.name}.\nPreivew at Spotify: ${data.tracks.items[i].preview_url}\n`))
             }
         }
     });
@@ -96,29 +76,49 @@ function music() {
 
 //// OMDB //// 
 // node liri.js movie-this '<movie name here>'
-function movie() {
-    let movieName = process.argv[3];
+function movie(movieTitle) {
+    let movieName = movieTitle || process.argv[3];
     if (movieName === undefined) {
-        console.log(chalk.red("If you haven't watched 'Mr. Nobody,' then you should. http://www.imdb.com/title/tt0485947/ It's on Netflix!"))
+        console.log(chalk.red(`\nIf you haven't watched 'Mr. Nobody,' then you should. http://www.imdb.com/title/tt0485947/ It's on Netflix!`))
         movieName = "Mr. Nobody"
     }
-
     const queryMovieUrl = "http://www.omdbapi.com/?t=" + movieName + "&y=&plot=short&apikey=trilogy";
-
     request(queryMovieUrl, (err, response, body) => {
-        if (err)
-            return err;
-        if (response.statusCode === 200) {
+        if (err) {
+            return console.log('\nError occurred: ' + err);
+        } else if (response.statusCode === 200) {
             let jsonMovie = JSON.parse(body);
-            console.log(chalk.magenta('Title: ', jsonMovie.Title))
-            console.log(chalk.magenta('Release Year: ', jsonMovie.Year))
-            console.log(chalk.magenta('Film Rating: ', jsonMovie.Rated))
-            console.log(chalk.magenta('IMDB Rating: ', jsonMovie.imdbRating))
-            console.log(chalk.magenta('Rotten Tomatoes Rating: ', jsonMovie.Ratings[1].Value))
-            console.log(chalk.magenta('Produced in: ', jsonMovie.Country))
-            console.log(chalk.magenta('Language: ', jsonMovie.Language))
-            console.log(chalk.magenta('Plot Synopsis: ', jsonMovie.Plot))
-            console.log(chalk.magenta('Actors: ', jsonMovie.Actors))
+            console.log(chalk.green(`\n${jsonMovie.Title}, ${jsonMovie.Year}, with ${jsonMovie.Actors} was produced in ${jsonMovie.Language} in ${jsonMovie.Country}\n`))
+            console.log(chalk.magenta(`Ratings:\n\tFilm: ${jsonMovie.Rated}\n \tIMDB: ${jsonMovie.imdbRating}\n\tRotten Tomatoes: ${jsonMovie.Ratings[1].Value}\n`))
+            console.log(chalk.cyan('Plot Synopsis: ', jsonMovie.Plot))
         }
     })
 }
+
+// RANDOM.TXT////
+// node liri.js do-what-it-says
+function doIt() {
+    let text = process.argv[3];
+    // if (text === undefined) {
+    //     console.log(chalk.red("I'm sorry, I didn't catch that request. Please try again."))
+    // }
+    fs.readFile("random.txt", "utf8", function (err, data) {
+        if (err) {
+            return console.log(err);
+        }
+        var textArr = data.split(",");
+        switch (textArr[0]) {
+            case "movie-this":
+                movie(textArr[1]);
+                break;
+            case "spotify-this-song":
+                music(textArr[1]);
+                break;
+            case "concert-this":
+                concert(textArr[1]);
+                break;
+            // }
+        }
+    });
+}
+
