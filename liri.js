@@ -1,6 +1,6 @@
 //NMPs: 
 require("dotenv").config();
-let fs = require('fs');// Read and write
+const fs = require('fs');// Read and write
 const Spotify = require('node-spotify-api');// Songs
 const request = require('request');// Bands in Town (concerts) & OMDB (movies)
 const moment = require('moment');// Time formatter
@@ -10,8 +10,8 @@ const chalk = require('chalk'); // Colorizer
 const keys = require('./keys');
 const spotify = new Spotify(keys.spotify);
 
+// Establish actions for LIRI to take
 const action = process.argv[2];
-console.log(chalk.red('You asked me to:', action))// take out after testing
 
 switch (action) {
     case "concert-this":
@@ -31,21 +31,29 @@ switch (action) {
 //// BANDS IN TOWN //// 
 // node liri.js concert-this '<artist/band name here>'
 function concert(artistName) {
+
     let artist = artistName || process.argv[3];
     if (artist === undefined) {
         console.log(chalk.red(`\nI'm sorry, I don't recognize that band. Maybe you would like to see my favorite artist, Sir Paul McCartney.\n`));
-artist = "Paul McCartney";
+        artist = "Paul McCartney";
     }
+
     const queryConcertUrl = "https://rest.bandsintown.com/artists/" + artist + "/events?app_id=codingbootcamp";
     request(queryConcertUrl, (err, response, body) => {
         if (err) {
             return console.log('\nError occurred: ' + err);
         } else if (response.statusCode === 200) {
             let jsonConcert = JSON.parse(body);
-            console.log(chalk.green(`\nI hope you can catch one of these tour stops for ${artist}:\n`))
-            for (let i = 0; i < jsonConcert.length; i++) {
-                console.log(chalk.cyan(`•  ${moment(jsonConcert[i].datetime).format("MMM Do, YYYY")} at ${jsonConcert[i].venue.name} in ${jsonConcert[i].venue.city}, ${jsonConcert[i].venue.region}\n`))
-            } if (jsonConcert.length === 0) {
+            if (jsonConcert.length != 0) {
+                console.log(chalk.green(`\nI hope you can catch one of these tour stops for ${artist}:\n`))
+                logIt(`\n\nTour stops for ${artist}:\n`)
+                
+                for (let i = 0; i < jsonConcert.length; i++) {
+                    console.log(chalk.cyan(`\t•  ${moment(jsonConcert[i].datetime).format("MMM Do, YYYY")} at ${jsonConcert[i].venue.name} in ${jsonConcert[i].venue.city}, ${jsonConcert[i].venue.region}`))
+                    
+                    logIt(`\t•  ${moment(jsonConcert[i].datetime).format("MMM Do, YYYY")} at ${jsonConcert[i].venue.name} in ${jsonConcert[i].venue.city}, ${jsonConcert[i].venue.region}`)
+                }
+            } else {
                 console.log(chalk.red("I'm sorry, it doesn't look like that band is on tour. Please try another band."))
             }
         }
@@ -67,8 +75,12 @@ function music(songTitle) {
             console.log(chalk.red(`\nI'm sorry but I can't find that track. Please try another track.`))
         } else {
             console.log(chalk.green(`\nI found a few listings for "${song}."\n`))
+            logIt(`\n\n${song}:\n`)
+
             for (let i = 0; i < data.tracks.items.length; i++) {
                 console.log(chalk.cyan(`•  ${data.tracks.items[i].name} was recorded by ${data.tracks.items[i].artists[0].name} on ${data.tracks.items[i].album.name}.\nPreivew at Spotify: ${data.tracks.items[i].preview_url}\n`))
+                
+                logIt(`\t•  ${data.tracks.items[i].name} was recorded by ${data.tracks.items[i].artists[0].name} on ${data.tracks.items[i].album.name}`)
             }
         }
     });
@@ -88,9 +100,17 @@ function movie(movieTitle) {
             return console.log('\nError occurred: ' + err);
         } else if (response.statusCode === 200) {
             let jsonMovie = JSON.parse(body);
-            console.log(chalk.green(`\n${jsonMovie.Title}, ${jsonMovie.Year}, with ${jsonMovie.Actors} was produced in ${jsonMovie.Language} in ${jsonMovie.Country}\n`))
-            console.log(chalk.magenta(`Ratings:\n\tFilm: ${jsonMovie.Rated}\n \tIMDB: ${jsonMovie.imdbRating}\n\tRotten Tomatoes: ${jsonMovie.Ratings[1].Value}\n`))
-            console.log(chalk.cyan('Plot Synopsis: ', jsonMovie.Plot))
+            if (jsonMovie.Title != undefined) {
+
+                console.log(chalk.green(`\n${jsonMovie.Title}, ${jsonMovie.Year}, with ${jsonMovie.Actors} was produced in ${jsonMovie.Language} in ${jsonMovie.Country}\n`))
+                console.log(chalk.magenta(`Ratings:\n\tFilm: ${jsonMovie.Rated}\n \tIMDB: ${jsonMovie.imdbRating}\n\tRotten Tomatoes: ${jsonMovie.Ratings[1].Value}\n`))
+                console.log(chalk.cyan(`Plot: ${jsonMovie.Plot}`))
+                                
+                logIt(`\n\n${jsonMovie.Title}, ${jsonMovie.Year}\n\t${jsonMovie.Plot}\n`)
+            }
+            else {
+                console.log(chalk.red(`\nI'm sorry but I can't find that movie. Please try another movie.`))
+            }
         }
     })
 }
@@ -98,15 +118,14 @@ function movie(movieTitle) {
 // RANDOM.TXT////
 // node liri.js do-what-it-says
 function doIt() {
-    let text = process.argv[3];
-    // if (text === undefined) {
-    //     console.log(chalk.red("I'm sorry, I didn't catch that request. Please try again."))
-    // }
+    // let text = process.argv[3];
     fs.readFile("random.txt", "utf8", function (err, data) {
         if (err) {
             return console.log(err);
         }
+        // console.log(data)
         var textArr = data.split(",");
+        // console.log(textArr[0])
         switch (textArr[0]) {
             case "movie-this":
                 movie(textArr[1]);
@@ -117,8 +136,20 @@ function doIt() {
             case "concert-this":
                 concert(textArr[1]);
                 break;
-            // }
         }
     });
 }
+
+// Create log.txt file and enter data returned from searches into file
+function logIt(logfile) {
+    fs.appendFileSync("log.txt", logfile, function (err) {
+        if (err) {
+            return console.log(err);
+        }
+    });
+}
+
+
+
+
 
