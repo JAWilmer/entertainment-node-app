@@ -12,14 +12,9 @@ __How to use LIRI:__ Enter any of these request in LIRI's terminal:
 
 [_VIDEO: Let me see LIRI in action!_](https://drive.google.com/file/d/1s02dRll2ZxZ-oLTnUAOc5jgiX8Q5LfLN/view?usp=sharing)
 
-![](images/JW-LIRI-Demo-BasicCommands.webm)
-
-
 __Surprise me!__ LIRI will also respond to the terminal command "do-what-it-says" and return results for the movie, song, tweet, or concert has been secretly entered in a random text file. 
 
 [_VIDEO: What did LIRI do?_](https://drive.google.com/file/d/1O-_s5-t1x-rxdeaYYR1a7DQyav-QPJRA/view?usp=sharing)
-
-![](images/JW-LIRI-do-what-it-says.webm)
 
 __Log that!__
 As she works, LIRI creates a log file then appends her search results within the log.  In the image below, notice that LIRI has not yet created a log.   
@@ -28,4 +23,3 @@ As she works, LIRI creates a log file then appends her search results within the
 
 [_VIDEO: Show me the log!_](https://drive.google.com/file/d/10eRlifFlZgwJKmaoPVnbbnzry0K5_t_G/view?usp=sharing)
 
-![](images/JW-LIRI-Demo-Log.webm)
