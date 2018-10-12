@@ -19,7 +19,8 @@ __Surprise me!__ LIRI will also respond to the terminal command "do-what-it-says
 __What did LIRI do?__
 As she works, LIRI creates a log file then appends her search results within the log.  In the image below, notice that LIRI has not yet created a log.   
 
-!(JW-NoLog-Screenshot.png)
+![](images/JW-NoLog-Screenshot.png)
 
 [_VIDEO: Show me the log!_](https://drive.google.com/file/d/10eRlifFlZgwJKmaoPVnbbnzry0K5_t_G/view?usp=sharing)
+
 
