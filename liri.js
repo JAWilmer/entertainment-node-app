@@ -3,12 +3,15 @@ require("dotenv").config();
 const fs = require('fs');// Read and write
 const Spotify = require('node-spotify-api');// Songs
 const request = require('request');// Bands in Town (concerts) & OMDB (movies)
+const Twitter = require('twitter'); // Twitter
 const moment = require('moment');// Time formatter
 const chalk = require('chalk'); // Colorizer
 
 // Access spotify keys
 const keys = require('./keys');
 const spotify = new Spotify(keys.spotify);
+const twitter = new Twitter(keys.twitter);
+
 
 // Establish actions for LIRI to take
 const action = process.argv[2];
@@ -22,6 +25,9 @@ switch (action) {
         break;
     case "movie-this":
         movie();
+        break;
+    case "my-tweets":
+        tweet();
         break;
     case "do-what-it-says":
         doIt()
@@ -45,16 +51,16 @@ function concert(artistName) {
         } else if (response.statusCode === 200) {
             let jsonConcert = JSON.parse(body);
             if (jsonConcert.length != 0) {
-                console.log(chalk.green(`\nI hope you can catch one of these tour stops for ${artist}:\n`))
+                console.log(chalk.green(`\nTour dates for ${artist}:\n`))
                 logIt(`\n\nTour stops for ${artist}:\n`)
-                
+
                 for (let i = 0; i < jsonConcert.length; i++) {
                     console.log(chalk.cyan(`\t•  ${moment(jsonConcert[i].datetime).format("MMM Do, YYYY")} at ${jsonConcert[i].venue.name} in ${jsonConcert[i].venue.city}, ${jsonConcert[i].venue.region}`))
-                    
+
                     logIt(`\t•  ${moment(jsonConcert[i].datetime).format("MMM Do, YYYY")} at ${jsonConcert[i].venue.name} in ${jsonConcert[i].venue.city}, ${jsonConcert[i].venue.region}`)
                 }
             } else {
-                console.log(chalk.red("I'm sorry, it doesn't look like that band is on tour. Please try another band."))
+                console.log(chalk.red(`\nI'm sorry, it doesn't look like ${artist} is on tour. Please try another artist.`))
             }
         }
     })
@@ -74,12 +80,12 @@ function music(songTitle) {
         } else if (data.tracks.items.length === 0) {
             console.log(chalk.red(`\nI'm sorry but I can't find that track. Please try another track.`))
         } else {
-            console.log(chalk.green(`\nI found a few listings for "${song}."\n`))
+            console.log(chalk.green(`\nI found a few listings for ${song}.\n`))
             logIt(`\n\n${song}:\n`)
 
             for (let i = 0; i < data.tracks.items.length; i++) {
                 console.log(chalk.cyan(`•  ${data.tracks.items[i].name} was recorded by ${data.tracks.items[i].artists[0].name} on ${data.tracks.items[i].album.name}.\nPreivew at Spotify: ${data.tracks.items[i].preview_url}\n`))
-                
+
                 logIt(`\t•  ${data.tracks.items[i].name} was recorded by ${data.tracks.items[i].artists[0].name} on ${data.tracks.items[i].album.name}`)
             }
         }
@@ -105,7 +111,7 @@ function movie(movieTitle) {
                 console.log(chalk.green(`\n${jsonMovie.Title}, ${jsonMovie.Year}, with ${jsonMovie.Actors} was produced in ${jsonMovie.Language} in ${jsonMovie.Country}\n`))
                 console.log(chalk.magenta(`Ratings:\n\tFilm: ${jsonMovie.Rated}\n \tIMDB: ${jsonMovie.imdbRating}\n\tRotten Tomatoes: ${jsonMovie.Ratings[1].Value}\n`))
                 console.log(chalk.cyan(`Plot: ${jsonMovie.Plot}`))
-                                
+
                 logIt(`\n\n${jsonMovie.Title}, ${jsonMovie.Year}\n\t${jsonMovie.Plot}\n`)
             }
             else {
@@ -115,41 +121,60 @@ function movie(movieTitle) {
     })
 }
 
-// RANDOM.TXT////
-// node liri.js do-what-it-says
-function doIt() {
-    // let text = process.argv[3];
-    fs.readFile("random.txt", "utf8", function (err, data) {
-        if (err) {
-            return console.log(err);
+////TWITTER//// 
+// node liri my-tweets
+function tweet() {
+    let tweetList = process.argv[3];
+    var params = { screen_name: 'ReingerTX', count: 10 };
+    twitter.get('statuses/user_timeline', params, function (error, tweets, response) {
+        if (error) {
+            return console.log('\nError occurred: ' + error);
         }
-        // console.log(data)
-        var textArr = data.split(",");
-        // console.log(textArr[0])
-        switch (textArr[0]) {
-            case "movie-this":
-                movie(textArr[1]);
-                break;
-            case "spotify-this-song":
-                music(textArr[1]);
-                break;
-            case "concert-this":
-                concert(textArr[1]);
-                break;
+        else if (!error) {
+            console.log(chalk.green(`\nRangerTX Tweeted:\n`))
+            logIt(`\n\nRangerTX Tweeted:\n`)
+
+            for (let i = 0; i < tweets.length; i++) {
+                console.log(chalk.cyan(`•  ${tweets[i].created_at.slice(0, 10)}, 2018: ${tweets[i].text}\n`))
+                logIt(`\t•  ${tweets[i].created_at.slice(0, 10)}, 2018: ${tweets[i].text}  `)
+            }
         }
     });
 }
 
-// Create log.txt file and enter data returned from searches into file
-function logIt(logfile) {
-    fs.appendFileSync("log.txt", logfile, function (err) {
-        if (err) {
-            return console.log(err);
-        }
-    });
-}
+    //// RANDOM.TXT////
+    // node liri.js do-what-it-says
+    function doIt() {
+        // let text = process.argv[3];
+        fs.readFile("random.txt", "utf8", function (err, data) {
+            if (err) {
+                return console.log(err);
+            }
+            // console.log(data)
+            var textArr = data.split(",");
+            // console.log(textArr[0])
+            switch (textArr[0]) {
+                case "movie-this":
+                    movie(textArr[1]);
+                    break;
+                case "spotify-this-song":
+                    music(textArr[1]);
+                    break;
+                case "concert-this":
+                    concert(textArr[1]);
+                    break;
+                case "my-tweets":
+                    tweet();
+                    break;
+            }
+        });
+    }
 
-
-
-
-
+    // Create log.txt file and enter data returned from searches into file
+    function logIt(logfile) {
+        fs.appendFileSync("log.txt", logfile, function (err) {
+            if (err) {
+                return console.log(err);
+            }
+        });
+    }
